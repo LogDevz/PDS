@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Serviços</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#fafbfc;--cd:#fff;--tx:#0b1f3a;--mu:#5b6b82;--br:#e2e6ec;--ac:#d4a017;--nv:#0b1f3a}
+[data-theme=dark]{--bg:#07142a;--cd:#0e2342;--tx:#f2f5fa;--mu:#9fb0c8;--br:#1c3560}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx)}
+aside{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--nv);color:#fff;display:flex;flex-direction:column;transform:translateX(-100%);transition:.25s;z-index:20}
+body.so aside{transform:none}
+.at{display:flex;justify-content:flex-end;padding:10px 12px 0}
+.at button{background:none;border:0;color:#cfd8e6;font-size:22px;cursor:pointer}
+nav{flex:1;overflow:auto;padding:4px 10px 14px}
+nav .g{width:100%;text-align:left;background:none;border:0;color:#fff;font-weight:700;padding:10px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between}
+nav .g:hover,nav .s:hover{background:#ffffff18}
+nav .sub{max-height:0;overflow:hidden;transition:.25s}
+nav .open+.sub{max-height:220px}
+nav .s{display:block;width:100%;text-align:left;background:none;border:0;color:#cfd8e6;padding:8px 10px 8px 26px;border-radius:8px;cursor:pointer}
+nav .s.on{color:var(--nv);background:var(--ac);font-weight:700}
+.sf{padding:12px;border-top:1px solid #ffffff22;display:flex;gap:10px}
+.sf button{width:44px;height:44px;border-radius:50%;border:0;background:var(--ac);color:var(--nv);font-size:20px;font-weight:900;cursor:pointer}
+.sf #th{background:#ffffff22;color:#fff}
+main{transition:.25s}
+body.so main{margin-left:250px}
+@media(max-width:900px){body.so main{margin-left:0}}
+header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--br);position:sticky;top:0;background:var(--bg);z-index:5}
+header h1{font-size:18px;margin:0;flex:1}
+header button,.row button{border:1px solid var(--br);background:var(--cd);color:var(--tx);padding:8px 12px;border-radius:8px;cursor:pointer}
+#view{padding:22px}
+h2{margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.kpi,.card{background:var(--cd);border:1px solid var(--br);border-radius:12px;padding:14px}
+.kpi small{color:var(--mu);text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+.kpi b{display:block;font-size:26px;margin:4px 0}
+.kpi{border-left:4px solid var(--tx)}
+.k1{border-left-color:#3b82f6}.k1 b{color:#3b82f6}
+.k2{border-left-color:#16a34a}.k2 b{color:#16a34a}
+.k3{border-left-color:#22c55e}.k3 b{color:#22c55e}
+.k4{border-left-color:#dc2626}.k4 b{color:#dc2626}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:14px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.card h3{margin:0 0 8px;font-size:14px}
+.card canvas{max-height:260px}
+input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--br);border-radius:8px;background:var(--cd);color:var(--tx);font:inherit}
+input[type=checkbox]{width:auto}
+label{display:block;font-size:12px;color:var(--mu);margin:8px 0 2px}
+.ck{display:inline-flex;gap:6px;align-items:center;margin:0 10px 0 0;color:var(--tx);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.row select{width:auto}
+.pri{background:var(--ac)!important;color:var(--nv)!important;border-color:var(--ac)!important;font-weight:700}
+button.dan{background:#c62828!important;color:#fff!important;border:0;border-radius:8px;cursor:pointer;padding:7px 12px;font-weight:700}
+.fp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 12px;margin-bottom:12px}
+.fp[hidden]{display:none}
+.tw{overflow:auto;margin-top:10px;border:1px solid var(--br);border-radius:12px;background:var(--cd)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--br);white-space:nowrap}
+th{color:var(--mu);font-size:12px}
+.mh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.bd{display:inline-block;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;background:var(--br);color:var(--mu)}
+.b1{background:#3b82f622;color:#3b82f6}.b2{background:#16a34a22;color:#16a34a}.b3{background:#22c55e22;color:#16a34a}.b4{background:#dc262622;color:#dc2626}
+.rc{cursor:pointer;border-left:4px solid var(--ac)}
+.rc:hover{transform:translateY(-2px)}
+.chip{display:inline-block;background:var(--br);border-radius:6px;padding:2px 8px;font-size:11px;margin:2px 4px 2px 0;font-weight:700}
+.big{font-size:26px;font-weight:800}
+.res{max-height:430px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.ln{padding:5px 0;border-bottom:1px solid var(--br)}
+.ln div{color:var(--mu);margin:2px 0 0 12px}
+.ln .ar{color:var(--tx)}
+.qrs{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.qc{width:fit-content;max-width:244px}
+.qc small{display:block;word-break:break-all}
+#dr{position:fixed;right:0;top:0;bottom:0;width:min(540px,100%);background:var(--cd);border-left:1px solid var(--br);transform:translateX(100%);transition:.25s;z-index:30;overflow:auto}
+#dr.open{transform:none}
+.dh{display:flex;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--br);font-size:18px}
+.dh button{background:none;border:0;color:var(--tx);font-size:22px;cursor:pointer}
+.db{padding:16px 18px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:40;padding:14px}
+.modal.open{display:flex}
+.mb{background:var(--cd);border-radius:14px;padding:20px;width:min(460px,100%)}
+.mb h4{margin:14px 0 4px}
+small{color:var(--mu)}
+.qq{cursor:zoom-in;display:inline-block;margin:8px 0}
+#qb{display:flex;justify-content:center;padding:10px}
+</style>
+</head>
+<body>
+<aside><div class="at"><button id="sc" title="Fechar menu">‹</button></div><nav id="nv"></nav><div class="sf"><button title="Alimentar o painel" onclick="md.classList.add('open')">↑</button><button id="th" title="Alternar tema">◐</button></div></aside>
+<main>
+<header><button id="hb">☰</button><h1 id="tt"></h1></header>
+<section id="view"></section>
+</main>
+<div id="dr"></div>
+<div id="md" class="modal"><div class="mb">
+<h3>Alimentar o painel</h3>
+<h4>Informações Gerais</h4>
+<input type="file" id="uf" multiple accept=".xlsx,.xls,.csv">
+<h4>Status</h4>
+<input type="file" id="us" accept=".xlsx,.xls,.csv">
+<p id="um"></p>
+<div class="row"><button class="pri" onclick="upload()">Carregar</button><button onclick="md.classList.remove('open')">Fechar</button></div>
+</div></div>
+<div id="qm" class="modal" onclick="this.classList.remove('open')"><div class="mb" style="text-align:center"><h3 id="qt"></h3><div id="qb"></div></div></div>
+<script>
+const $=s=>document.querySelector(s),LS='painel_servicos_v1';
+let D=JSON.parse(localStorage.getItem(LS)||'null')||{cdp:{PASSEIO:[],VUC:[]},inv:[],man:[],st:{},rotas:[]};
+let charts=[],page='PASSEIO',cur=null;
+const save=()=>localStorage.setItem(LS,JSON.stringify(D));
+const nz=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const col=(r,re)=>{const k=Object.keys(r).find(k=>re.test(nz(k)));return k?r[k]:''};
+const ids=v=>String(v??'').split(/[^0-9A-Za-z]+/).filter(x=>x.length>3);
+const fmt=v=>v instanceof Date?v.toLocaleString('pt-BR'):String(v??'');
+const num=v=>typeof v==='number'?v:parseFloat(String(v).replace(/[R$\s]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'))||0;
+const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const info=id=>D.st[id]||{st:'—',sub:'—',val:0};
+const dl=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click()};
+const readFile=f=>new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(XLSX.read(e.target.result,{type:'array',cellDates:true}));fr.readAsArrayBuffer(f)});
+const parseTs=v=>{const m=String(v||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);if(m)return new Date(+m[3],m[2]-1,+m[1],+(m[4]||0),+m[5]||0,+(m[6]||0)).getTime();const t=Date.parse(v);return isNaN(t)?null:t};
+const idv=r=>r.id!==undefined?String(r.id):(r.ids?r.ids.map(p=>p.id).join(' '):'');
+const mapCdp=r=>({ts:fmt(col(r,/carimbo/)),log:col(r,/^log/),conf:col(r,/conferente|meli/),transp:col(r,/transportadora/),ciclo:col(r,/ciclo/),rota:col(r,/^rota/),just:col(r,/justific/),ids:ids(col(r,/^id/))});
+const mapInv=r=>({ts:fmt(col(r,/carimbo/)),log:col(r,/^log/),cat:col(r,/categoria/),ciclo:col(r,/ciclo/),ids:ids(col(r,/^id/))});
+const flatCdp=k=>D.cdp[k].flatMap(r=>r.ids.map(id=>({area:'CDP '+k,ts:r.ts,log:r.log,conf:r.conf,transp:r.transp,ciclo:r.ciclo,rota:r.rota,just:r.just,id,...info(id)})));
+const flatInv=()=>D.inv.flatMap(r=>r.ids.map(id=>({area:'Inventário',ts:r.ts,log:r.log,cat:r.cat,ciclo:r.ciclo,id,...info(id)})));
+const flatMan=()=>D.man.map(id=>({area:'Manuais',id,...info(id)}));
+const flatRotas=()=>D.rotas.flatMap(r=>r.ids.map(p=>({area:'Rotas Extras',rota:r.ident,transp:r.transp,id:p.id,...info(p.id)})));
+const AREAS={'CDP PASSEIO':()=>flatCdp('PASSEIO'),'CDP VUC':()=>flatCdp('VUC'),'Inventário':flatInv,'Manuais':flatMan,'Rotas Extras':flatRotas};
+const allRows=()=>Object.values(AREAS).flatMap(f=>f());
+const ALLF=[['transp','Transportadora'],['ciclo','Ciclo'],['rota','Rota'],['just','Justificativa'],['cat','Categoria'],['conf','Conferente'],['st','Status'],['sub','Substatus']];
+const count=(rows,k)=>{const m={};rows.forEach(r=>{const x=r[k]||'—';m[x]=(m[x]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10)};
+const grp=(rs,k)=>{const m={};rs.forEach(r=>{const x=r[k]||'—';(m[x]=m[x]||{n:0,ids:new Set()}).n++;m[x].ids.add(r.id)});return Object.entries(m).sort((a,b)=>b[1].n-a[1].n)};
+const uval=rs=>[...new Set(rs.map(r=>r.id))].reduce((a,id)=>a+info(id).val,0);
+const chart=(id,e)=>charts.push(new Chart($('#'+id),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:'#d4a017'}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}}));
+const kpi=(l,v)=>`<div class="kpi"><small>${l}</small><b>${v}</b></div>`;
+const tbl=(rows,cols)=>`<div class="tw"><table><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr>${rows.slice(0,300).map(r=>`<tr>${cols.map(c=>`<td>${c[0]=='val'?brl(r[c[0]]):esc(r[c[0]])}</td>`).join('')}</tr>`).join('')}</table></div>${rows.length>300?`<small>Mostrando 300 de ${rows.length}</small>`:''}`;
+
+const dayOf=ts=>{const t=parseTs(ts);return t==null?null:new Date(t).toLocaleDateString('pt-BR')};
+const dkey=d=>{const [x,m,y]=d.split('/').map(Number);return y*10000+m*100+x};
+const mkFilter=(box,rows,fields,dated,cb)=>{
+const el=$('#'+box),st={},today=()=>new Date().toLocaleDateString('pt-BR');
+if(dated)st.__d=today();
+const pass=(r,skip)=>(!dated||skip=='__d'||!st.__d||(d=>d==null||d==st.__d)(dayOf(r.ts)))&&fields.every(f=>f[0]==skip||!st[f[0]]||String(r[f[0]]??'')==st[f[0]]);
+const opts=k=>[...new Set(rows.filter(r=>pass(r,k)).map(r=>r[k]).filter(v=>v!==''&&v!=null).map(String))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+const dopts=()=>{const s=new Set(rows.filter(r=>pass(r,'__d')).map(r=>dayOf(r.ts)).filter(Boolean));s.add(today());return[...s].sort((a,b)=>dkey(b)-dkey(a))};
+const sel=(k,l,o)=>`<div><label>${l}</label><select data-k="${k}"><option value="">${k=='__d'?'Todas as datas':'Todos'}</option>${o.map(x=>`<option value="${esc(x)}"${st[k]==x?' selected':''}>${esc(x)}</option>`).join('')}</select></div>`;
+const render=()=>{
+const dd=dated?dopts():[];
+if(dated&&st.__d&&!dd.includes(st.__d))st.__d='';
+const fo=fields.map(f=>{const o=opts(f[0]);if(st[f[0]]&&!o.includes(st[f[0]]))st[f[0]]='';return o});
+el.innerHTML=`<div class="card fp">${dated?sel('__d','Data',dd):''}${fields.map((f,i)=>sel(f[0],f[1],fo[i])).join('')}</div>`};
+el.onchange=e=>{const k=e.target.dataset.k;if(k===undefined)return;st[k]=e.target.value;render();cb()};
+render();
+const apply=rs=>rs.filter(r=>pass(r));
+const desc=()=>[...(dated&&st.__d?['Data: '+st.__d]:[]),...fields.filter(f=>st[f[0]]).map(f=>f[1]+': '+st[f[0]])];
+return{apply,desc}};
+
+const dashView=(t,rows,gs,cols,fields)=>{
+$('#view').innerHTML=`<h2>${t}</h2><div id="fb"></div><div class="kpis" id="kp"></div><div class="grid" id="gr"></div><div id="tw"></div>`;
+const F=fields?mkFilter('fb',rows,fields,true,()=>draw()):{apply:r=>r};
+const draw=()=>{
+const rs=F.apply(rows);
+$('#kp').innerHTML=kpi('Registros',rs.length)+kpi('IDs únicos',new Set(rs.map(r=>r.id)).size)+kpi('Valor declarado',brl(uval(rs)));
+charts.forEach(c=>c.destroy());charts=[];
+$('#gr').innerHTML=gs.map((g,i)=>`<div class="card"><h3>${g[1]}</h3><canvas id="c${i}"></canvas></div>`).join('');
+gs.forEach((g,i)=>chart('c'+i,count(rs,g[0])));
+$('#tw').innerHTML=tbl(rs,cols)};
+draw()};
+const CC=[['id','ID'],['ts','Data/hora'],['transp','Transportadora'],['ciclo','Ciclo'],['rota','Rota'],['just','Justificativa'],['conf','Conferente'],['st','Status'],['sub','Substatus'],['val','Valor']];
+const pgCdp=k=>dashView('CDP '+k,flatCdp(k),[['transp','Por transportadora'],['just','Por justificativa'],['ciclo','Por ciclo'],['st','Por status']],CC,[['transp','Transportadora'],['just','Justificativa'],['ciclo','Ciclo'],['rota','Rota'],['conf','Conferente'],['st','Status'],['sub','Substatus']]);
+const pgInv=()=>dashView('Inventário',flatInv(),[['cat','Por categoria'],['ciclo','Por ciclo'],['st','Por status']],[['id','ID'],['ts','Data/hora'],['cat','Categoria'],['ciclo','Ciclo'],['st','Status'],['sub','Substatus'],['val','Valor']]);
+
+const catOf=r=>{const s=nz(r.st+' '+r.sub);if(r.st=='—')return'Sem status';if(/not_deliver|fail|nao entreg|return|devol|cancel|lost|extrav|damag/.test(s))return'Falha entrega';if(/deliver|entreg/.test(s))return'Entregue';if(/route|transit|rota|out_for|next_destination/.test(s))return'Em Rota';if(/station|sorting|ready|handling|despach|pending|waiting|stale/.test(s))return'Despachar';return'Outros'};
+const kc=(l,n,v,c)=>`<div class="kpi ${c}"><small>${l}</small><b>${n}</b><small>${brl(v)}</small></div>`;
+const delMan=id=>{D.man=D.man.filter(x=>x!=id);save();pgMan()};
+const pgMan=()=>{
+const all=flatMan().map(r=>({...r,cat:catOf(r),obs:r.st=='—'?'—':r.st+' / '+r.sub}));
+$('#view').innerHTML=`<h2>Manuais</h2><div class="kpis" id="kp"></div><div class="card"><div class="mh"><h3>Lançamentos de Expedição</h3><small id="mc"></small></div><div id="tw"></div></div>`;
+const ex=['Despachar','Em Rota','Entregue','Falha entrega'];
+const draw=()=>{
+const rs=all,s=k=>rs.filter(r=>r.cat==k),sm=a=>a.reduce((x,r)=>x+r.val,0),ot=rs.filter(r=>!ex.includes(r.cat));
+$('#kp').innerHTML=kc('Total',rs.length,sm(rs),'k0')+ex.map((n,i)=>kc(n,s(n).length,sm(s(n)),'k'+(i+1))).join('')+(ot.length?kc('Outros',ot.length,sm(ot),'k0'):'');
+$('#mc').textContent=`${rs.length} lançamentos (de ${Object.keys(D.st).length} na planilha de status)`;
+$('#tw').innerHTML=`<div class="tw"><table><tr><th>ID</th><th>Status</th><th>Observação (status bruto)</th><th>Valor Declarado</th><th>Ação</th></tr>${rs.slice(0,300).map(r=>`<tr><td>${esc(r.id)}</td><td><span class="bd b${ex.indexOf(r.cat)+1}">${r.cat}</span></td><td>${esc(r.obs)}</td><td>${brl(r.val)}</td><td><button class="dan" onclick="delMan('${esc(r.id)}')">Excluir</button></td></tr>`).join('')}</table></div>${rs.length>300?`<small>Mostrando 300 de ${rs.length}</small>`:''}`};
+draw()};
+
+const rotaVal=r=>r.ids.reduce((a,p)=>a+info(p.id).val,0);
+const pgRotas=()=>{
+const all=D.rotas.map((r,i)=>({...r,_i:i}));
+$('#view').innerHTML=`<h2>Rotas Extras <button class="pri" style="border:0;padding:6px 12px;border-radius:8px;cursor:pointer" onclick="openRota(-1)">+</button></h2><div class="kpis" id="kp"></div><div class="grid" id="gr"></div>`;
+const draw=()=>{
+const rs=all,u=new Set(rs.flatMap(r=>r.ids.map(p=>p.id)));
+$('#kp').innerHTML=kpi('Rotas extras',rs.length)+kpi('Pacotes',u.size)+kpi('Valor declarado',brl([...u].reduce((a,id)=>a+info(id).val,0)));
+$('#gr').innerHTML=rs.map(r=>`<div class="card rc" onclick="openRota(${r._i})"><b>${esc(r.ident)}</b><br><small>${esc([r.transp,r.tipo,r.driver].filter(Boolean).join(' · '))}</small><div>${r.combo.split('+').filter(x=>x.trim()).map(x=>`<span class="chip">${esc(x.trim())}</span>`).join('')}</div><small>Pacotes</small> <div class="big">${r.ids.length}</div><div style="text-align:right"><small>Valor</small> <b>${brl(rotaVal(r))}</b></div></div>`).join('')};
+draw()};
+const openRota=i=>{cur=i<0?{ident:'EXTRA '+(D.rotas.length+1),transp:'',driver:'',tipo:'',combo:'',regiao:'',ids:[],novo:1}:D.rotas[i];drawer()};
+const closeDr=()=>$('#dr').classList.remove('open');
+const drawer=()=>{
+const r=cur;
+$('#dr').innerHTML=`<div class="dh"><b>${esc(r.ident)}</b><button onclick="closeDr()">×</button></div><div class="db"><div class="fg">${[['transp','Transportadora'],['ident','Identificação'],['driver','Driver'],['tipo','Tipo']].map(f=>`<div><label>${f[1]}</label><input id="d_${f[0]}" value="${esc(r[f[0]])}"></div>`).join('')}</div><label>Combinação de clusters (separe com +)</label><input id="d_combo" value="${esc(r.combo)}"><label>Região</label><input id="d_regiao" value="${esc(r.regiao)}"><div class="row"><button class="pri" onclick="saveRota()">Salvar rota</button><button class="dan" onclick="delRota()">Excluir rota</button></div><small>Ao mudar a combinação, salve para trazer os pacotes dos novos clusters.</small><p><b>${r.ids.length} pacotes · ${brl(rotaVal(r))}</b></p><textarea id="d_add" rows="2" placeholder="Adicionar IDs extras (um ou vários, separados por espaço ou linha)"></textarea><div class="row"><button class="pri" onclick="addIds()">Adicionar</button></div><div class="tw"><table><tr><th>ID</th><th>Status</th><th>Valor</th><th>Origem</th><th></th></tr>${r.ids.map((p,i)=>`<tr><td>${esc(p.id)}</td><td>${esc(info(p.id).st)}</td><td>${brl(info(p.id).val)}</td><td>${p.origem}</td><td><button class="dan" onclick="delId(${i})">Excluir</button></td></tr>`).join('')}</table></div></div>`;
+$('#dr').classList.add('open')};
+const readDr=()=>['transp','ident','driver','tipo','combo','regiao'].forEach(k=>cur[k]=$('#d_'+k).value.trim());
+const commit=()=>{if(cur.novo){delete cur.novo;D.rotas.push(cur)}save();pgRotas();drawer()};
+const saveRota=()=>{
+readDr();
+const cl=cur.combo.split('+').map(nz).filter(Boolean);
+const all=[...D.cdp.PASSEIO,...D.cdp.VUC].filter(r=>cl.includes(nz(r.rota))).flatMap(r=>r.ids);
+const man=cur.ids.filter(p=>p.origem=='Manual'),seen=new Set(man.map(p=>p.id));
+cur.ids=[...man,...[...new Set(all)].filter(id=>!seen.has(id)).map(id=>({id,origem:'Cluster'}))];
+commit()};
+const addIds=()=>{readDr();const have=new Set(cur.ids.map(p=>p.id));ids($('#d_add').value).forEach(id=>{if(!have.has(id)){have.add(id);cur.ids.push({id,origem:'Manual'})}});commit()};
+const delId=i=>{cur.ids.splice(i,1);if(!cur.novo)save();drawer();pgRotas()};
+const delRota=()=>{if(!confirm('Excluir esta rota?'))return;D.rotas=D.rotas.filter(r=>r!==cur);save();closeDr();pgRotas()};
+
+const dtl=r=>(r.area=='Manuais'?[r.st!='—'?r.st+' / '+r.sub:'',r.val?brl(r.val):'']:r.area=='Rotas Extras'?[r.rota,r.transp]:r.area=='Inventário'?[r.cat,r.ciclo,r.ts]:[r.transp,r.rota&&'Rota '+r.rota,r.just,r.ciclo,r.ts]).filter(Boolean).join(' · ');
+const CFO=[['Manuais','Manuais'],['Rotas Extras','Rota extra'],['CDP VUC','VUC'],['CDP PASSEIO','Passeio'],['Inventário','Inventário']];
+const pgConf=()=>{
+$('#view').innerHTML=`<h2>Confronto</h2><div class="card"><label>Áreas</label><div class="row">${CFO.map(o=>`<label class="ck"><input type="checkbox" class="ca" value="${o[0]}" checked>${o[1]}</label>`).join('')}</div></div><div style="height:12px"></div><div class="two"><div class="card"><h3>IDs para confrontar</h3><textarea id="cf" rows="14" placeholder="Cole os IDs aqui..."></textarea><div class="row"><button class="pri" onclick="runConf()">Confrontar</button></div></div><div class="card"><h3>Resultado <small id="cn"></small></h3><div id="cr" class="res"></div></div></div>`;
+$('#view').onchange=e=>{if(e.target.classList.contains('ca'))runConf()}};
+const runConf=()=>{
+const q=[...new Set(ids($('#cf').value))],a=[...document.querySelectorAll('.ca:checked')].map(x=>x.value),idx={};
+allRows().filter(r=>a.includes(r.area)).forEach(r=>{(idx[r.id]=idx[r.id]||new Set()).add(r.area+'|'+dtl(r))});
+const hit=q.filter(id=>idx[id]);
+$('#cn').textContent=q.length?`${hit.length} de ${q.length} encontrados`:'';
+$('#cr').innerHTML=hit.map(id=>`<div class="ln"><b>${esc(id)}</b>${[...idx[id]].map(x=>{const[n,...y]=x.split('|');return `<div><b class="ar">${esc(n)}</b> ${esc(y.join('|'))}</div>`}).join('')}</div>`).join('')};
+
+let mer=[];
+const pgMer=()=>{$('#view').innerHTML=`<h2>Mesclar</h2><input type="file" id="mf" multiple accept=".xlsx,.xls,.csv"><div class="row"><button class="pri" onclick="doMer()">Mesclar</button></div><div id="mr"></div>`};
+const doMer=async()=>{
+mer=[];
+for(const f of $('#mf').files){const wb=await readFile(f);wb.SheetNames.forEach(n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:'',raw:false}).forEach(r=>mer.push({Arquivo:f.name,Aba:n,...r})))}
+$('#mr').innerHTML=`<p><b>${mer.length}</b> linhas mescladas</p><div class="row"><button class="pri" onclick="dlMer('xlsx')">Baixar .xlsx</button><button onclick="dlMer('csv')">Baixar .csv</button></div>`};
+const dlMer=t=>{const ws=XLSX.utils.json_to_sheet(mer);if(t=='csv')dl(new Blob(['\ufeff'+XLSX.utils.sheet_to_csv(ws)],{type:'text/csv'}),'mesclado.csv');else{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Mesclado');XLSX.writeFile(wb,'mesclado.xlsx')}};
+
+const H={area:'Área',id:'ID',dt:'Data',transp:'Transportadora',ciclo:'Ciclo',rota:'Rota',just:'Justificativa',cat:'Categoria',conf:'Conferente',st:'Status',sub:'Substatus',val:'Valor'};
+let RF=null;
+const pgRel=()=>{
+$('#view').innerHTML=`<h2>Gerar Relatório</h2><div class="card"><h3>Áreas</h3><div class="row">${Object.keys(AREAS).map(a=>`<label class="ck"><input type="checkbox" class="ra" value="${a}" checked>${a}</label>`).join('')}</div></div><div style="height:12px"></div><div id="fb"></div><div class="two"><div class="card"><h3>Colunas</h3>${Object.keys(H).map(k=>`<label class="ck"><input type="checkbox" class="rcl" value="${k}" checked>${H[k]}</label>`).join('')}<label>Ordenar por</label><select id="ro"><option value="ts">Data<option value="val">Valor (maior primeiro)<option value="area">Área<option value="transp">Transportadora<option value="st">Status<option value="id">ID</select></div><div class="card"><h3>Conteúdo</h3><label class="ck"><input type="checkbox" id="rg" checked>Gráficos</label><br><label class="ck"><input type="checkbox" id="rs" checked>Resumos por área, transportadora, status, justificativa e ciclo</label><br><label class="ck"><input type="checkbox" id="rl" checked>Listagem completa</label></div></div><div class="kpis" id="kp" style="margin-top:12px"></div><div class="row"><button class="pri" onclick="relPdf()">Gerar PDF</button><button onclick="relCsv()">Gerar CSV</button></div>`;
+RF=mkFilter('fb',allRows(),ALLF,true,upRep);
+$('#view').onchange=upRep;upRep()};
+const relAreas=()=>[...document.querySelectorAll('.ra:checked')].map(x=>x.value);
+const relCols=()=>[...document.querySelectorAll('.rcl:checked')].map(x=>x.value);
+const relRows=()=>{
+const k=$('#ro').value;
+const rs=RF.apply(relAreas().flatMap(a=>AREAS[a]())).map(r=>({...r,dt:dayOf(r.ts)||''}));
+return rs.sort((a,b)=>k=='ts'?(parseTs(a.ts)||0)-(parseTs(b.ts)||0):k=='val'?b.val-a.val:String(a[k]??'').localeCompare(String(b[k]??''),'pt-BR',{numeric:true}))};
+const upRep=()=>{const r=relRows();$('#kp').innerHTML=kpi('Registros',r.length)+kpi('IDs únicos',new Set(r.map(x=>x.id)).size)+kpi('Valor declarado',brl(uval(r)))};
+const relCsv=()=>{const r=relRows(),cs=relCols();dl(new Blob(['\ufeff'+XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(r.map(x=>Object.fromEntries(cs.map(k=>[H[k],x[k]??''])))))],{type:'text/csv'}),'relatorio.csv')};
+const relPdf=()=>{
+const r=relRows(),cs=relCols(),d=new (window.jspdf.jsPDF)({orientation:'landscape'}),uids=new Set(r.map(x=>x.id));
+let y=15;
+d.setFontSize(16);d.text('Relatório - Painel de Serviços',14,y);y+=6;
+d.setFontSize(9);d.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`,14,y);y+=5;
+d.text(d.splitTextToSize('Áreas: '+relAreas().join(', '),265),14,y);y+=5;
+const fd=RF.desc();
+if(fd.length){const t=d.splitTextToSize('Filtros: '+fd.join(' | '),265);d.text(t,14,y);y+=4*t.length+1}
+d.setFontSize(11);d.text(`${r.length} registros · ${uids.size} IDs únicos · ${brl(uval(r))} de valor declarado`,14,y);y+=6;
+const sec=t=>{if(y>190){d.addPage();y=15}d.setFontSize(11);d.text(t,14,y);y+=2};
+const tb=(head,body)=>{d.autoTable({startY:y,head:[head],body,styles:{fontSize:7},headStyles:{fillColor:[11,31,58]},margin:{left:14,right:14}});y=d.lastAutoTable.finalY+8};
+if($('#rg').checked){
+[['area','Registros por área'],['st','Por status'],['transp','Por transportadora'],['just','Por justificativa']].forEach((g,i)=>{
+const e=count(r,g[0]),cv=document.createElement('canvas');cv.width=520;cv.height=260;
+const c=new Chart(cv,{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:g[1],data:e.map(x=>x[1]),backgroundColor:'#d4a017'}]},options:{animation:false,responsive:false},plugins:[{id:'bg',beforeDraw:ch=>{ch.ctx.fillStyle='#fff';ch.ctx.fillRect(0,0,ch.width,ch.height)}}]});
+d.addImage(cv.toDataURL('image/png'),'PNG',14+(i%2)*140,y+Math.floor(i/2)*66,130,63);c.destroy()});
+y+=136}
+if($('#rs').checked){
+[['area','Por área'],['transp','Por transportadora'],['st','Por status'],['just','Por justificativa'],['ciclo','Por ciclo']].forEach(g=>{
+const e=grp(r,g[0]);
+if(e.length==1&&e[0][0]=='—')return;
+sec(g[1]);
+tb(['Grupo','Registros','IDs únicos','Valor declarado'],e.map(([k,o])=>[k,o.n,o.ids.size,brl([...o.ids].reduce((a,id)=>a+info(id).val,0))]))})}
+if($('#rl').checked){sec('Listagem');tb(cs.map(k=>H[k]),r.map(x=>cs.map(k=>k=='val'?brl(x[k]):x[k]??'')))}
+d.save('relatorio.pdf')};
+
+const QR=[['Inventário','https://forms.gle/hC6yArPC6D9KF8kc7'],['CDP VUC','https://forms.gle/pTNtx51bPAguy6j39'],['CDP Passeio','https://forms.gle/3Hm8C9MWYdfP6EZk8']];
+const openQr=i=>{$('#qt').textContent=QR[i][0];$('#qb').innerHTML='';new QRCode($('#qb'),{text:QR[i][1],width:340,height:340});$('#qm').classList.add('open')};
+const pgQr=()=>{$('#view').innerHTML=`<h2>QR's</h2><div class="qrs">${QR.map((q,i)=>`<div class="card qc"><h3>${q[0]}</h3><div class="qq" id="q${i}" onclick="openQr(${i})"></div><small>${q[1]}</small></div>`).join('')}</div>`;QR.forEach((q,i)=>new QRCode($('#q'+i),{text:q[1],width:200,height:200}))};
+
+const upload=async()=>{
+const m=[];
+for(const f of $('#uf').files){
+const wb=await readFile(f);
+const g=n=>{const s=wb.SheetNames.find(x=>nz(x)==nz(n))||(nz(f.name).includes(nz(n))?wb.SheetNames[0]:null);return s?XLSX.utils.sheet_to_json(wb.Sheets[s],{defval:''}):null};
+let r;
+if(r=g('CDP_PASSEIO')){D.cdp.PASSEIO=r.map(mapCdp);m.push('CDP_PASSEIO: '+r.length)}
+if(r=g('CDP_VUC')){D.cdp.VUC=r.map(mapCdp);m.push('CDP_VUC: '+r.length)}
+if(r=g('INV_REATRIBUICAO')){D.inv=r.map(mapInv);m.push('INV: '+r.length)}
+if(r=g('MANUAIS')){D.man=[...new Set(r.flatMap(x=>ids(col(x,/^id/)||Object.values(x)[0])))];m.push('MANUAIS: '+D.man.length)}}
+const s=$('#us').files[0];
+if(s){
+const wb=await readFile(s),r=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+D.st={};
+r.forEach(x=>{const id=String(col(x,/id do envio|^id/)).trim();if(id)D.st[id]={st:col(x,/^status/)||'—',sub:col(x,/sub.?tatus|substatus/)||'—',val:num(col(x,/valor/))}});
+m.push('Status: '+Object.keys(D.st).length)}
+save();
+$('#um').textContent=m.join(' · ')||'Nenhuma planilha reconhecida';
+go(page)};
+
+const NAV=[['Controle de pacotes',[['PASSEIO',()=>pgCdp('PASSEIO')],['VUC',()=>pgCdp('VUC')]]],['Reatribuição',[['Manuais',pgMan],['Rotas Extras',pgRotas],['Inventário',pgInv]]],['Ferramentas',[['Confronto',pgConf],['Mesclar',pgMer],['Gerar Relatório',pgRel],["QR's",pgQr]]]];
+const PG={};
+$('#nv').innerHTML=NAV.map((g,gi)=>`<button class="g ${gi==0?'open':''}" onclick="this.classList.toggle('open')">${g[0]}<span>›</span></button><div class="sub">${g[1].map(p=>{PG[p[0]]=p[1];return `<button class="s" data-p="${p[0]}">${p[0]}</button>`}).join('')}</div>`).join('');
+const go=n=>{
+page=n;
+charts.forEach(c=>c.destroy());charts=[];closeDr();
+$('#view').onchange=null;
+document.querySelectorAll('.s').forEach(b=>b.classList.toggle('on',b.dataset.p==n));
+$('#tt').textContent=n;
+PG[n]()};
+document.querySelectorAll('.s').forEach(b=>b.onclick=()=>go(b.dataset.p));
+$('#hb').onclick=()=>document.body.classList.toggle('so');
+$('#sc').onclick=()=>document.body.classList.remove('so');
+const setTheme=t=>{document.documentElement.dataset.theme=t;localStorage.setItem('painel_tema',t)};
+setTheme(localStorage.getItem('painel_tema')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+$('#th').onclick=()=>setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark');
+if(innerWidth>=900)document.body.classList.add('so');
+go('PASSEIO');
+</script>
+</body>
+</html>
